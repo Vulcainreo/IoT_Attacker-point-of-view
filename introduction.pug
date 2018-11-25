@@ -1,0 +1,33 @@
+:markdown-it
+  # Connected object of Internet of things ?
+
+  An object is by definition a solid thing that responds to a specific and predefined function. Here, in everyday language, an object is often a sensor (temperature or pressure) or an actuator (valve or relay). The connected dimension comes from the addition of an IP adress (IPv4 or IPv6).
+  
+  The following schema shows this explained defition :
+    
+  ![./img/schemaIoT.png](./img/schemaIoT.png) 
+
+  In some situation, the sensor needs to be miniaturized in order to be transported (ex.: heart rate sensor). This new usage brings new constraints such as size and autonomy. We will see later that some of them are responsable to security weakness mostly covered by the Top10 OWASP.
+
+  In addition to theses constraints, we can add the time to market process where a single week late will train a disastrous impact on sales.
+  
+  In order to well manage theses size and autonomy issues, the objects (or sensors) are mostly no able to contact directly the cloud. Indeed, a middleware is often put between them and could be an Android or an iOS smartphone application.
+
+  # Standard reminders
+
+  In IoT world, there is no standards that could become a norm. Indeed, many companies have imposed their communication protocol. Some of them, after time and partnership, becomes references but not norms.
+  
+  Today, we could classify standards in eight categories. Only famous of them will be describe bellow.
+
+  * Infrastructure
+    * IP / nanoIP : like Internet network
+    * Time Synchronized Mesh Protocole (TSMP) : self-organized network where communication is done by time windows.
+  * Identification
+  * Communication and transport
+  * Discovery
+  * Data transport
+  * Device management
+  * Semantic
+  * Multi-layer framework.
+
+include protocol.pug

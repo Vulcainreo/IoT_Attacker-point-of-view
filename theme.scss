@@ -1,0 +1,122 @@
+@import 'https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/semantic.min.css';
+@import 'https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/icon.min.css';
+@import 'https://afeld.github.io/emoji-css/emoji.css';
+@import url('https://fonts.googleapis.com/css?family=Poppins');
+@import 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-dark.min.css';
+
+$primary_color: #1B4D78;
+$page-width: 17cm;
+
+@page {
+  margin: 2cm 1cm 2cm 0cm;
+}
+
+html {
+  padding-left: 1cm;
+  padding-right: 1cm;
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px !important;
+}
+
+h1 { 
+  font-size: 3em;
+  margin-bottom: 30;
+}
+
+h2 {
+  font-size: 2em;
+  margin-left: 30;
+  margin-top: 30;
+}
+
+.title {
+  text-align: center;
+  h1 {
+    font-size: 3em;
+    margin-bottom: 0;
+  }
+  h2 {
+    margin-top: 0.1em;
+    font-size: 1.8em;
+  }
+  margin-bottom: 3em;
+}
+
+body {
+  line-height: 1.5em;
+  font-size: 16px !important;
+  text-align: justify;
+  font-family: 'Poppins', sans-serif;
+  margin-left: 1cm;
+ }
+
+a {
+  text-decoration: underline;
+  color: inherit;
+}
+
+$sidebar-width: 0.4in;
+$sidebar-height: 1450px;
+
+.report-sidebar {
+  position: fixed;
+  left: -$sidebar-width;
+  top: -100;
+  width: $sidebar-width;
+  height: $sidebar-height;
+  writing-mode: vertical-rl;
+  border-top: $sidebar-width solid transparent;
+  border-left: $sidebar-width solid lighten($primary_color, 10%);
+  border-bottom: $sidebar-width solid transparent;
+  p {
+    text-align: center;
+    color: lighten($primary_color, 50%);
+    margin-right: 0.1in;
+  }
+}
+
+.block-center {
+  display: block;
+  margin: 0 auto;
+}
+
+.figure p {
+  font-size: 0.7em !important;
+  margin-top: 1em;
+}
+
+h1 {
+  page-break-before: always;
+  text-align: center;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background: #333;
+    background-image: linear-gradient(to right, #ccc, #333, #ccc);
+}
+
+.full-width {
+  width: 100%
+}
+
+.two-column {
+  column-count: 2;
+  column-gap: 40px;
+  font-size: 0.8em;
+}
+
+
+@for $i from 1 to 20 {
+  .width-#{$i}cm { width: #{10 * $i}mm !important; }
+}
+@for $i from 1 to 20 {
+  .top-#{$i}mm { margin-top: #{$i}mm; }
+}
+
+img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}

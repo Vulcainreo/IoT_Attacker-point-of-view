@@ -1,8 +1,10 @@
-<html><head>
+
+    <html>
+      <head>
         <meta charset="UTF-8">
         
       </head>
-      <body> <div class="report-sidebar"><p>Whitepaper - IoT : Attacker point of view - Arnaud COURTY - @vulcainreo
+      <body> <div class="report-sidebar"><p>Whitepaper - IoT : Attacker point of view - Arnaud COURTY - @Vulcainreo
 </p></div><div class="title"><h1>IoT, attackers point of view</h1><h2>Whitepaper</h2></div><div class="ui segment piled" style="margin-bottom:0.6cm;"><div class="content"><h3>Abstract</h3>
 <p>This presentation will be an opportunity to review the most famous vulnerabilities encountered during pentest and audit. From industrials systems to the customer product, many security concepts are similar but often poorly implemented. From a standalone industrial system on which an IP address has been added, to the TV / connected toy that spies unbeknownst a household, any security issue quickly takes a new size as soon as the object is available on the market and connectd to the cloud. The purpose of this whitepaper is to provide to designers, developers and integrators of IoT solutions an overview of needed security reflex to include best practices from the design step.</p>
 </div></div><div class="ui icon message yellow" style="margin-bottom:0.6cm;"><i class="briefcase icon"></i><div class="content"><div class="header">About the author (Arnaud COURTY)</div><p>Researcher in IT Security at Onepoint, his main mission is to evangelise companies to take care about security from the design step.</p>
@@ -46,6 +48,7 @@
 <li>Range: 50-150m (Smart/BLE)</li>
 <li>Rate: 1Mbps (Smart/BLE)</li>
 </ul>
+<h1></h1>
 <h2>Zigbee</h2>
 <ul>
 <li>Standard: ZigBee 3.0 based on IEEE802.15.4</li>
@@ -152,10 +155,10 @@ uid=0(root) gid=0
 		<span class="hljs-keyword">if</span> ( inputPIN [i] != correctPIN [i] )
 			<span class="hljs-built_in">return</span> <span class="hljs-literal">false</span> ;
 	<span class="hljs-built_in">return</span> <span class="hljs-literal">true</span> ;
-}
-</code></pre><p>The attack is almost simple : just analyse the answering timing. If the first character is wrong, the loop will exit shortly. An attacker could enumerate each character in each position to identify if the character is correct or not. Just replaying the same method on other position in order to detect which caracter is correct. The new complexity will be only to 40 try.</p>
+}</code></pre><p>The attack is almost simple : just analyse the answering timing. If the first character is wrong, the loop will exit shortly. An attacker could enumerate each character in each position to identify if the character is correct or not. Just replaying the same method on other position in order to detect which caracter is correct. The new complexity will be only to 40 try.</p>
 <div class="ui icon message red" style="margin-bottom:0.6cm;"><i class="fire extinguisher icon"></i><div class="content"><p>It is recommended to not reinvent a validation algorithm. Using community algorithm should be a relevant solution, mostly because the commmunity has already hardened the security. By the way, a password should never stored in cleartext but in a non-reversible method (ex.: hashed with sha256)</p>
-</div></div><h2>TOP 3 : Insecure network services</h2>
+</div></div><h1></h1>
+<h2>TOP 3 : Insecure network services</h2>
 <p>Some object broadcasts streams without any upstream control. Here, an IP camera connected to the local network broadcast, without authentication, a RSTP video stream on the port 10554.</p>
 <p>The VLC tool allows an attacker to decode in live the stream.</p>
 <pre class="hljs"><code>user@kali$ vlc rstp://192.168.1.107:10554/tcp/av0_1
@@ -170,18 +173,16 @@ uid=0(root) gid=0
 </ul>
 <pre class="hljs"><code>Smartphone &gt; Padlock : 0x0026 0100
 Smartphone &gt; Padlock : 0x0029 554100000014
-Smartphone &gt; Padlock : 0x0029 55100144
-</code></pre><p>With a simple replay of previous command, an attacker could open the padlock.</p>
+Smartphone &gt; Padlock : 0x0029 55100144</code></pre><p>With a simple replay of previous command, an attacker could open the padlock.</p>
 <pre class="hljs"><code>[34:XX:13:XX:5C:XX][LE]&gt; connect 34:XX:13:XX:5C:XX
 		Attempting to connect to 34:XX:13:XX:5C:XX
 		Connection successful
 [34:XX:13:XX:5C:XX][LE]&gt; char-write-cmd 0x0026 0100
 [34:XX:13:XX:5C:XX][LE]&gt; char-write-cmd 0x0029 554100000014
 [34:XX:13:XX:5C:XX][LE]&gt; char-write-cmd 0x0029 55100144
-		Padlock unlocked
-
-</code></pre><div class="ui icon message red" style="margin-bottom:0.6cm;"><i class="fire extinguisher icon"></i><div class="content"><p>It is highly recommended to setup a unique challenge during each exchange. A developer could implement a sharing secret between smartphone and padlock. In each opening request, a random number is calculated by the smartphone and crypted by the shared secret before sending to the padlock. This random secret guaranteed the uniqueness of the session.</p>
-</div></div><h2>TOP 5 : Sensitive information exposure</h2>
+		Padlock unlocked</code></pre><div class="ui icon message red" style="margin-bottom:0.6cm;"><i class="fire extinguisher icon"></i><div class="content"><p>It is highly recommended to setup a unique challenge during each exchange. A developer could implement a sharing secret between smartphone and padlock. In each opening request, a random number is calculated by the smartphone and crypted by the shared secret before sending to the padlock. This random secret guaranteed the uniqueness of the session.</p>
+</div></div><h1></h1>
+<h2>TOP 5 : Sensitive information exposure</h2>
 <p>Some applications and protocols are often implemented and used without taking care of the security layer. Here a smartphone application publishs on a MQTT server the location of his proprietary.</p>
 <p>This application goal is to share, between friends, each people location. The location is published and stored on a dedicated MQTT broker.
 The MQTT protocol allows, by default, anybody to subscribe to the broacasted topic, without any authentication. A simple Shodan request with the application name allow an attacker to identify vulnerable server and access to smartphone geolocation.</p>
@@ -193,14 +194,11 @@ XX1.2XX.2XX.1X9
 smartthings/bed/switch
 tele/sonoff_bedroom/LWT
 tele/sonoff_livingroom/LWT
-o[xxx]s/brian/iphone
-</code></pre><p>The following screenshot shows an attacker who has subscribed to the Brian location topic /o[xxx]s/brian/iphone and see that he is currently in Norway.</p>
+o[xxx]s/brian/iphone</code></pre><p>The following screenshot shows an attacker who has subscribed to the Brian location topic /o[xxx]s/brian/iphone and see that he is currently in Norway.</p>
 <pre class="hljs"><code>{
   <span class="hljs-attr">"cog"</span>: <span class="hljs-number">286</span>,
   <span class="hljs-attr">"batt"</span>: <span class="hljs-number">49</span>,
   <span class="hljs-attr">"lon"</span>: <span class="hljs-number">12345678</span>,
-  <span class="hljs-attr">"acc"</span>: <span class="hljs-number">16</span>,
-  <span class="hljs-attr">"p"</span>: <span class="hljs-number">99.99998474121094</span>,
   <span class="hljs-attr">"vel"</span>: <span class="hljs-number">53</span>,
   <span class="hljs-attr">"vac"</span>: <span class="hljs-number">14</span>,
   <span class="hljs-attr">"lat"</span>: <span class="hljs-number">12345678</span>,
@@ -209,9 +207,7 @@ o[xxx]s/brian/iphone
   <span class="hljs-attr">"tid"</span>: <span class="hljs-string">"NE"</span>,
   <span class="hljs-attr">"_type"</span>: <span class="hljs-string">"location"</span>,
   <span class="hljs-attr">"alt"</span>: <span class="hljs-number">27</span>
-}
-
-</code></pre><div class="ui icon message red" style="margin-bottom:0.6cm;"><i class="fire extinguisher icon"></i><div class="content"><p>It is highly recommended to check that free services do not abusively expose information on the Internet and an authentication process is implemented. The authentication process must validate user identity and limit access to only legitimate users. Some details could be find here :  <a href="https://www.hivemq.com/blog/introducing-the-mqtt-security-fundamentals">https://www.hivemq.com/blog/introducing-the-mqtt-security-fundamentals</a></p>
+}</code></pre><div class="ui icon message red" style="margin-bottom:0.6cm;"><i class="fire extinguisher icon"></i><div class="content"><p>It is highly recommended to check that free services do not abusively expose information on the Internet and an authentication process is implemented. The authentication process must validate user identity and limit access to only legitimate users. Some details could be find here :  <a href="https://www.hivemq.com/blog/introducing-the-mqtt-security-fundamentals">https://www.hivemq.com/blog/introducing-the-mqtt-security-fundamentals</a></p>
 </div></div><h2>I6 : Insecure cloud services</h2>
 <p>Some IoT builders wants to simplify the user's story as much as possible. Thus, in the case of VIPCAM camera, a subdomain is booked for each camera. User should only plug the camera, take his browser, point to the printed subdomain and access to the camera. If it is simple for a user, it will be also the same for an attacker.</p>
 <p>An attacker, without buying the camera, could identify the subdomain name generation algorithm. Indeed, all marketplaces publish promotional pictures :</p>
@@ -294,14 +290,13 @@ Jffs2_raw_summary count: 0
 Jffs2_raw_xattr count: 0
 Jffs2_raw_xref count: 0
 [...]
-</code></pre><p>The firmware is composed of a linux architecture (/etc/, /var/ and /bin/). The goal is to identify the hardcoded root password. Obviously, <strong>/etc/passwd</strong> and <strong>/etc/shadow</strong> should be the right way. The password is encrypted and could be easily cracked with the JohnTheRipper tool. A custom dictonnary like "rockyou" should be used, but in many IoT case, it is useless.</p>
+</code></pre><p>The firmware is composed of a linux architecture (/etc/, /var/ and /bin/). The goal is to identify the hardcoded root password. Obviously, <strong>/etc/passwd</strong> and <strong>/etc/shadow</strong> should be the right way. The password is encrypted and could be easily cracked with the JohnTheRipper tool. A custom dictonnary like &quot;rockyou&quot; should be used, but in many IoT case, it is useless.</p>
 <pre class="hljs"><code>cat /etc/passwd
 root:<span class="hljs-variable">$1</span>$<span class="hljs-variable">$qRP</span>[...]by/:0:0::/root:/bin/sh
 
 john pass.txt --show
 		root:admin
-1 password <span class="hljs-built_in">hash</span> cracked, 0 left
-	</code></pre><p>An attacker sould now retreive usefull information like :</p>
+1 password <span class="hljs-built_in">hash</span> cracked, 0 left</code></pre><p>An attacker sould now retreive usefull information like :</p>
 <ul>
 <li>Source code : ls -la /mnt/webapp/</li>
 <li>Startup scripts : find / -name *.sh</li>
@@ -372,7 +367,8 @@ root:x:0:0:root:/root:/bin/bash
 sync:x:4:65534:sync:/bin:/bin/sync
 admin:x:9:9:news:/xxxxx:/bin/sh
 camera:x:10:10:uucp:/var/spxxxxxx:/bin/shfs
-							</code></pre><p>Another example is a Bluetooth light. The device use an Arduino Atmega328p chip to control light, color and Bluetooth communication with the smartphone application. The following screenshot shows the PCB. As we can see, USB labelled 3 pins should be a UART connection.</p>
+							</code></pre><h1></h1>
+<p>Another example is a Bluetooth light. The device use an Arduino Atmega328p chip to control light, color and Bluetooth communication with the smartphone application. The following screenshot shows the PCB. As we can see, USB labelled 3 pins should be a UART connection.</p>
 <p><img src="./img/pcb.png" alt="puce Atmega328p"></p>
 <p>A datasheet reading confirm that it is an UART connection</p>
 <p><img src="./img/atmegaDatasheet.png" alt="Atmega datasheet"></p>
@@ -596,5 +592,5 @@ img {
   display: block;
   margin-left: auto;
   margin-right: auto; }
-</style> 
-    </body></html>
+</style> </body>
+    </html>

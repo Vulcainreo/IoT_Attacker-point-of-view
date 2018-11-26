@@ -80,7 +80,6 @@ pre.hljs
 							return false ;
 					return true ;
 				}
-
 :markdown-it
 	The attack is almost simple : just analyse the answering timing. If the first character is wrong, the loop will exit shortly. An attacker could enumerate each character in each position to identify if the character is correct or not. Just replaying the same method on other position in order to detect which caracter is correct. The new complexity will be only to 40 try.
 	
@@ -91,6 +90,8 @@ pre.hljs
 							It is recommended to not reinvent a validation algorithm. Using community algorithm should be a relevant solution, mostly because the commmunity has already hardened the security. By the way, a password should never stored in cleartext but in a non-reversible method (ex.: hashed with sha256)
 
 :markdown-it
+	#
+		
 	## TOP 3 : Insecure network services
 
 	Some object broadcasts streams without any upstream control. Here, an IP camera connected to the local network broadcast, without authentication, a RSTP video stream on the port 10554.
@@ -129,7 +130,6 @@ pre.hljs
 					Smartphone > Padlock : 0x0026 0100
 					Smartphone > Padlock : 0x0029 554100000014
 					Smartphone > Padlock : 0x0029 55100144
-
 :markdown-it
 	With a simple replay of previous command, an attacker could open the padlock.
 
@@ -143,8 +143,6 @@ pre.hljs
 				[34:XX:13:XX:5C:XX][LE]> char-write-cmd 0x0029 554100000014
 				[34:XX:13:XX:5C:XX][LE]> char-write-cmd 0x0029 55100144
 						Padlock unlocked
-
-
 .ui.icon.message.red(style='margin-bottom:0.6cm;')
 		i.fire.extinguisher.icon
 		.content
@@ -153,7 +151,7 @@ pre.hljs
 					It is highly recommended to setup a unique challenge during each exchange. A developer could implement a sharing secret between smartphone and padlock. In each opening request, a random number is calculated by the smartphone and crypted by the shared secret before sending to the padlock. This random secret guaranteed the uniqueness of the session.
 
 :markdown-it
-
+	#
 	## TOP 5 : Sensitive information exposure
 
 	Some applications and protocols are often implemented and used without taking care of the security layer. Here a smartphone application publishs on a MQTT server the location of his proprietary.
@@ -180,7 +178,6 @@ pre.hljs
 				tele/sonoff_bedroom/LWT
 				tele/sonoff_livingroom/LWT
 				o[xxx]s/brian/iphone
-
 :markdown-it
 	The following screenshot shows an attacker who has subscribed to the Brian location topic /o[xxx]s/brian/iphone and see that he is currently in Norway. 
 	
@@ -191,8 +188,6 @@ pre.hljs
 				  "cog": 286,
 				  "batt": 49,
 				  "lon": 12345678,
-				  "acc": 16,
-				  "p": 99.99998474121094,
 				  "vel": 53,
 				  "vac": 14,
 				  "lat": 12345678,
@@ -202,8 +197,6 @@ pre.hljs
 				  "_type": "location",
 				  "alt": 27
 				}
-
-
 .ui.icon.message.red(style='margin-bottom:0.6cm;')
 		i.fire.extinguisher.icon
 		.content
@@ -367,7 +360,6 @@ pre.hljs
 				john pass.txt --show
 						root:admin
 				1 password hash cracked, 0 left
-					
 :markdown-it
 	An attacker sould now retreive usefull information like :
 	* Source code : ls -la /mnt/webapp/
@@ -468,6 +460,7 @@ pre.hljs
 				camera:x:10:10:uucp:/var/spxxxxxx:/bin/shfs
 											
 :markdown-it
+	#
 	Another example is a Bluetooth light. The device use an Arduino Atmega328p chip to control light, color and Bluetooth communication with the smartphone application. The following screenshot shows the PCB. As we can see, USB labelled 3 pins should be a UART connection. 
 	
 	![puce Atmega328p](./img/pcb.png)

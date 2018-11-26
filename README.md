@@ -2,7 +2,7 @@
 Whitepaper about IoT security from attackers eyes
 
 ## Download
-You can download the PDF file here : [https://github.com/Vulcainreo/IoT_Attacker-point-of-view/raw/IoT_Attacker-point-of-view.pdf]
+You can download the PDF file here : https://github.com/Vulcainreo/IoT_Attacker-point-of-view/raw/master/IoT_Attacker-point-of-view.pdf
 
 ## Licence
 This Whitepaper is licenced on Creative Commons - CC-BY-SA (attribution and share alike)

@@ -1,0 +1,33 @@
+.report-sidebar: p.
+  Whitepaper - IoT : Attacker point of view - Arnaud COURTY - @Vulcainreo
+
+.title
+  h1 IoT, attackers point of view
+  h2 Whitepaper
+
+include abstract.pug
+include introduction.pug
+include paradigm.pug
+include attackSurface.pug
+include top10.pug
+//include testcode.pug
+
+template#page-footer
+  style(type='text/css').
+    .pdfheader {
+      font-size: 10px;
+      font-family: Poppins;
+      font-weight: bold;
+      width: 1000px;
+      border-top: 1px solid black;
+      margin-left: 10%;
+      margin-right: 10%;
+      padding-top: 1mm;
+      margin-bottom: -1mm;
+      text-align: center;
+    }
+
+  .pdfheader Page #[span.pageNumber] / #[span.totalPages]
+
+style
+  include:scss theme.scss
